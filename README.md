@@ -86,16 +86,12 @@ python3 -m tests.test_search_loop && python3 -m tests.test_new_experiments
 export MUJOCO_GL=egl        # or osmesa; needs a node with a GL backend (not a bare login node)
 python3 -m experiments.render_real_robots --seed 0 --settle_steps 300
 ```
-A previous run produced black images, and a no-DISPLAY node crashed in GLFW. The renderer is
-unverified until you get a non-black image; if it stays black, check lighting.
 
 ### Figures
 
 ```bash
 python3 figures/make_figures.py
 ```
-`figures/schematic_robots.py` has two known cosmetic bugs (an escaped underscore in a title; collinear
-segments hide the two-segment structure) and its output is not used in the paper.
 
 ## Comparing recent LLM/co-design morphology papers (RoboMorph, LASeR, etc.)
 
