@@ -1,0 +1,9 @@
+numpy==2.5.3
+scipy==1.18.1
+matplotlib==3.11.2
+mujoco==3.13.0
+# optional, needed only for specific appendix scripts (see REPRODUCE.md):
+cma==4.5.0
+scikit-posthocs
+torch==2.14.1
+imageio==2.37.4
