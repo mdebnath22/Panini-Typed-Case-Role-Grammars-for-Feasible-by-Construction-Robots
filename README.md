@@ -104,7 +104,6 @@ published numbers next to ours in one table would be apples-to-oranges.
 `experiments/recent_sota_baselines.py` instead reimplements each paper's **search mechanism**
 inside this pipeline — same genome, same CPG fitness, same shared evaluation budget as the
 other 21 methods — so the comparison is fair even though it's an analogue, not a reproduction.
-Read the module docstring before citing any number from it.
 
 Budget accounting across population-based (PSO/DE/CMA-ES/our evolution/the new
 archive-rotation and diversity-archive methods) and single-solution-based (hill-climbing,
