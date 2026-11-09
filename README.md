@@ -14,25 +14,8 @@ gmm/          Φ_body (phi_body), SE(3) math (se3), MJCF compiler, CPG locomotio
 sulba/        geometric feasibility gate (reach, clearance, mass, support polygon, self-collision)
 experiments/  every experiment script (table below)
 figures/      make_figures.py, schematic_robots.py, fig1-fig6 (.pdf/.png)
-paper/        main.tex (TMLR format), tmlr.bib, figures/
 tests/        smoke tests
-docs/         earlier runbook / roadmap / per-module notes
 ```
-
-## Building the paper (PDF)
-
-The paper source is self-contained in `paper/`: `main.tex`, `tmlr.sty`/`tmlr.bst`/`lmodern.sty`, `tmlr.bib`, and the figure PDFs it includes. You need a LaTeX install with `pdflatex` and `bibtex` (any TeX Live or MiKTeX distribution). From `paper/`:
-
-```bash
-pdflatex -interaction=nonstopmode main.tex
-bibtex main
-pdflatex -interaction=nonstopmode main.tex
-pdflatex -interaction=nonstopmode main.tex
-```
-
-Four passes in that order: the first lays out the document, `bibtex` builds the reference list from `tmlr.bib`, and the last two resolve citations and cross-references (they don't change further after that). `main.pdf` is the result. If you have `latexmk`, `latexmk -pdf main.tex` does the same thing in one command. This exact file set was verified by building it from scratch in an empty directory — 0 errors, 0 undefined references.
-
-Packages used: `tmlr`, `hyperref`, `url`, `amsmath`, `amssymb`, `booktabs`, `graphicx`, `tikz`, `pgfplots` (`compat=1.17`), `algorithm2e` (`ruled,vlined`), `array`, `xspace`, `caption` — all standard in a TeX Live `full` install; on a minimal install, add `pgfplots` and `algorithm2e` explicitly.
 
 ## Setup
 
@@ -259,19 +242,6 @@ mechanism (checking feasibility before spending a physics evaluation) from mutat
 both are now real, measured, mechanism-specific advantages rather than one of them being an
 artifact of a running-best-vs-per-eval measurement bug.
 
-## Citation accuracy pass
-
-`paper/tmlr.bib`'s entries for the 5 recent-method baselines were checked against the actual
-arXiv/proceedings pages rather than trusted from memory, and 3 had wrong author first names
-(RoboMorph/Qiu2024: Kailun/Wojciech/Konrad/Piotr -> the real Kevin/Władysław/Krzysztof/Paweł;
-LASeR/Song2025: Jie/Yiqun/Han/Fan -> the real Junru/Yang/Huan/Feifei), 1 had a paraphrased title
-(Strgar2025, corrected to the real "Accelerated Co-Design of Robots through Morphological
-Pretraining"), and Debate2Create was accidentally entered as two separate bib keys
-(`Debate2Create2025` with a placeholder author field, and `Qiu2025` with the correct one) --
-the duplicate is removed and every citation now points to `Qiu2025`. GLSO/Hu2022 was already
-correct (verified against the real CoRL 2022 / PMLR v205 record). None of these 5 papers have a
-newer or more-cited version than what's now in the bib file as of this check.
-
 ## Manipulation-side compositional-generalization anomaly, diagnosed
 
 Table 4 in the paper shows the manipulation domain's held-out (OOD) twist MSE *lower* than
@@ -316,11 +286,3 @@ diagnoses the one already run.
 - Why range-constrained resampling ties the grammar, resolved (`coupled_feasibility_validity.py`): every condition above mutates a design the grammar already derived, so it only tests whether validity *survives* one further edit, never whether the grammar's actual mechanism (even mount-angle spacing across limbs -- a joint, cross-limb property no single field's range can express) had to be *constructed* in the first place. Isolating that mechanism directly with a counterfactual (identical genome in every respect except mount angles drawn i.i.d. uniform instead of evenly spaced) and scoring on a coupled criterion only joint limb placement can satisfy (support-polygon area, calibrated against fresh genomes to very-low-feasibility regimes p≈0.30/0.10/0.05, n=150/condition): the grammar beats the mechanism-targeted counterfactual significantly at the two higher-powered levels (30.7% vs 12.7%, χ²p=0.0003; 6.7% vs 1.3%, χ²p=0.0392; direction holds but underpowered at p≈0.05: 2.7% vs 0.0%, χ²p=0.131), while still tying range-constrained resampling at every level (χ²p=0.80–1.00) -- because range-constrained resampling inherits the parent's coordination rather than ever constructing it. This is the decisive answer to "pure reinit and range-constrained resampling both hit 100%, so what does the grammar actually buy you": on the one property built to require the mechanism, removing it costs significantly.
 - Two more budget-matched analogues (`robogrammar_glso_baselines.py`): RoboGrammar's Graph Heuristic Search (1.393±0.523, wins 6/8 vs. ours, p=0.304) and GLSO's latent-space Bayesian optimization with a real sklearn GP (1.983±0.478, wins 4/8, p=0.357, nominally *higher* mean than ours) -- both statistically indistinguishable from grammar-guided evolution, extending the tie across all seven budget-matched analogues tested.
 - Closed kinematic chains (`closed_kinematic_chain.py`): a planar four-bar linkage has no real loop-closure solution for 36.4% of randomly sampled link-length combinations; where a solution exists, it closes to a measured defect of ~10⁻¹⁵ (floating-point precision), confirming the solver is sound and that closing a loop needs a genuinely new constraint-solving step the grammar's existing inheritance/specificity mechanisms have no analogue for.
-
-## Not included / known gaps
-
-- **Inheritance of `seg_len`/`seg_rad` across legs -- was a no-op, now fixed.** `BodySutra.resolve_params()` used to let a rule's own hardcoded `params` always overwrite anuvrtti-inherited values for the same key, so legs 1..n-1 never reflected the genome's mutated `seg_rad`/`seg_len` regardless of inheritance being enabled. Fixed: inherited values now take precedence over a rule's own default for the same key (an explicit per-step override, used only by leg 0, still wins over both). Re-ran the ablation: with inheritance active, 100/100 limbs now reflect the mutated radius; disabled, only 16/100 do (the pattern the ablation was designed to detect, now actually observed). Spot-checked the fix's effect on the paper's main search-fitness number at n=8 seeds: 1.678±0.821 (post-fix) vs. 1.998±0.634 (pre-fix), not significantly different (p=0.256, n=8) -- directionally real but not distinguishable from noise at this seed count. Not every table in the paper was re-run under the fix; see the paper's own disclosure in Appendix "Pitfalls" and Section "Correction to this section."
-- **Manipulation-side files** (`gmm/phi_seed.py`, `gmm/phi_neural.py`, `experiments/scenes.py`, `experiments/h1_compgen.py`, `ptg/grammar.py`, `ptg/sutra.py`) now ship in this package, restored from the author's original `panini-motion` repo, along with two small fixes needed to run them against this package's morphology-only `gmm/se3.py`: an unused, undefined `make_pick_place_plan` import in `scenes.py` was removed, and `exp_se3`/`compose` (the SE(3) exponential map and multi-transform composition PhiSeed/PhiNeural need) were added to `gmm/se3.py`, which previously had only `hat3`/`geodesic_distance` since nothing on the morphology side needed them. With these in place, `reviewer_q3_ood_diagnostic.py` (the length-controlled, multi-seed diagnostic Section 4.3's Limitations entry called for) runs end to end -- see "Manipulation-side compositional-generalization anomaly, diagnosed" below for the result.
-- **Full training-pipeline reproduction of the five recent-method analogues** (`experiments/full_pipeline_reproduction.py`, new): swaps the CPG-proxy fitness each analogue in `recent_sota_baselines.py`/`robogrammar_glso_baselines.py` currently uses for a REAL trained SAC policy (Brax, loading the exact MJCF this project's grammar already compiles, via `brax.io.mjcf.load` -- no translation step needed) run for `--num_timesteps` real environment steps (paper-faithful default: 500,000, the low end of the 5e5-1e6 range the related-work section cites for the actual published methods). Verified end-to-end on this project's own CPU-only container (`--smoke_test`: a genome body trains, produces a non-degenerate fitness -- displacement 16.1, didn't fall -- confirming the whole genome-to-trained-policy path is wired correctly), but a GPU is required to run this at reportable scale: on 2 CPU cores this gets ~20 steps/sec, so one candidate at 500k steps is ~7 hours; the search mechanisms above each evaluate dozens of candidates per seed across 8 seeds, so the full comparison is GPU-bound. Not run at full scale in this package; see the script's own docstring for exact commands and per-method notes.
-- `paper/main.tex` compiles cleanly against real `tmlr.sty`/`tmlr.bst` (31 pages, all citations and cross-references resolved) and incorporates every experiment in this README, including the 21-method comparison's n=8-to-n=24 reversal, the inheritance fix, the complex-environment measurement-bug correction and its seeding-rule fix, the stricter validity criterion, the coupled-feasibility coordination-mechanism result that resolves the Table 17 range-constrained-resampling tie, the two new budget-matched analogues, the gait-correlated gate test, and the closed-kinematic-chain verification.
-- Single MuJoCo version (3.13.0) for all reported physics numbers; Appendix "Pitfalls" documents that a different MuJoCo minor version (3.8.1) changes an eight-seed search-comparison statistic substantially on byte-identical code and seeds.
