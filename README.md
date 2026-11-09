@@ -113,25 +113,6 @@ evaluations per generation (truncated if the remaining budget is smaller), a sin
 method spends 1 per step (2 for SPSA's two-point gradient estimate). The reported number is
 each method's best fitness ever seen by the time its shared budget hit zero.
 
-`finetuned_controller_search`'s noise-averaging was a known gap, now fixed: each
-(freq, amp, phase) controller candidate it tries is itself averaged over the same
-`n_gait_seeds=3` rollouts every other method uses (an earlier version used one fixed-seed
-rollout per candidate, which was noisier and not apples-to-apples — see the function's
-docstring). Because of this, one of its genome evaluations now costs up to
-`tuning_trials × n_gait_seeds` physics evaluations rather than 1, so under the same
-`budget=60` it evaluates fewer distinct genomes than the other methods — a real,
-reportable cost of per-candidate controller fine-tuning, not a bug.
-
-`_genome_distance` (used by `diversity_archive_es`'s archive-rejection test) was also
-fixed: it originally divided each of the 5 genome parameters by its max value alone, which
-is not [0,1] min-max normalization — `Genome.clamp()`'s own bounds (e.g.
-`segments_per_leg∈[1,3]`) give most parameters a nonzero floor after dividing by max, so
-only `angle_jitter` (floor 0) actually spanned the full [0,1] range and silently dominated
-the distance. It now scales every parameter to [0,1] using its real `(min,max)` from
-`_GENOME_BOUNDS`, so no one parameter is over-weighted. Verified: distance from a genome
-to itself is 0, and between the two opposite corners of genome space is exactly √5 (the
-max possible across 5 equally-weighted unit dimensions).
-
 ## Counterfactual experiments (is the grammar's advantage necessary, not just convenient?)
 
 Three scripts probe this directly, each with a stated prediction in its own docstring and an
