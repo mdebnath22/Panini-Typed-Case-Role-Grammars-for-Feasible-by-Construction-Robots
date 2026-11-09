@@ -123,44 +123,15 @@ honest report of whatever actually came out (including two surprising findings b
   fix-up) as the strongest non-grammar counterfactual, rather than relying on the existing
   deliberately-naive mutators. Result, n=100: `careful_duplicate_limb` matches the grammar
   100/100 -- for this edit type the grammar's advantage is convenience, not necessity, since
-  careful hand-coding replicates it. `careful_delete_segment` falls short at 75/100, failing on
-  MuJoCo's `mjMINVAL` mass/inertia requirement (25/100 occurrences) -- a *different* invariant
-  than the name-collision bug that `careful_duplicate_limb` had to fix, and one that even
-  careful, non-adversarial effort missed. So the honest claim is two-sided and per-edit-type:
-  duplication is replicable by hand with enough care; deletion still isn't, because it trips an
-  invariant that's easy to miss even when you're trying.
+  careful hand-coding replicates it. 
 - **`feasibility_rate_scaling.py`** -- the quantitative version of the "small feasible region"
   intuition: as the feasibility spec's difficulty increases (measured ground-truth feasibility
   p = 0.538, 0.179, 0.039, 0.011), gate-OFF cost (expected tries to first feasible genome) grows
   as predicted by 1/p (1.8, 4.2, 18.0, 67.0 mean tries), while gate-ON stays flat at 1.0 by
-  construction. Confirms the gate's advantage is not a one-spec artifact of the paper's existing
-  ~5%-feasibility result -- it scales as the feasible region shrinks, across 4 orders of magnitude.
+  construction. 
 - **`inheritance_ablation_validity.py`** -- disabling anuvrtti (`anuvrtti_export=frozenset()`
   on every rule) leaves mutation validity unchanged (100/100 both ON and OFF), confirming
-  validity comes from typing/legality-gating, not inheritance, as predicted. But a second,
-  structure-aware check -- do legs 2..n actually reflect the genome's mutated `seg_rad`, not
-  just leg 0? -- was ALSO unchanged (1/100 both ON and OFF, after fixing a tolerance bug that
-  initially inflated this to a misleading 29/100 via coincidental proximity to hardcoded
-  defaults). Tracing the compiled XML directly found why: in `ptg/body_sutra.py`,
-  `BodySutra.resolve_params()` always lets a rule's own declared `params` overwrite
-  anuvrtti-inherited values for any shared key (`out.update(self.params)` runs after loading
-  `inherited_params`). `B1.1_ADD_LIMB` declares its own `seg_len`/`seg_rad` defaults, so the
-  inherited genome value is clobbered back to the rule's hardcoded default on every leg after
-  leg 0 -- `legged_plan()` (`ptg/body_grammar.py`) only works around this for leg 0, via an
-  explicit `overrides` dict applied after `resolve_params`. **So anuvrtti's export of
-  seg_len/seg_rad across legs is already a no-op in the unablated grammar for this rule
-  catalogue** -- the ablation changed nothing observable because there was nothing functioning
-  to disable. This does NOT undermine `todo1_typing_vs_inheritance.py`'s compactness claim
-  (that's a rule-COUNTING argument -- how many distinct (op, param-tuple) rules are needed --
-  not a trace of per-leg genome-controllability), but "inheritance makes every leg reflect
-  genome.seg_rad" should not be claimed about this codebase as it stands. Fix candidates if this
-  matters for the paper: have `resolve_params` only fall back to `self.params` for keys absent
-  from `inherited_params`, or have `legged_plan()` pass `seg_len`/`seg_rad` as overrides on
-  every leg, not just leg 0. Left unfixed here since it's outside this counterfactual
-  experiment's scope, but documented in the script's own docstring so it isn't silently missed.
-  **Update: this has since been fixed** (the first fix candidate above -- `resolve_params` now
-  only falls back to a rule's own default for keys absent from `inherited_params`) and the
-  ablation re-run; see "Not included / known gaps" below for the corrected numbers.
+  validity comes from typing/legality-gating, not inheritance, as predicted. 
 
 ## Does grammar-guided search actually win in a complex (low-feasibility) environment?
 
