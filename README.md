@@ -174,39 +174,6 @@ mechanism (checking feasibility before spending a physics evaluation) from mutat
 both are now real, measured, mechanism-specific advantages rather than one of them being an
 artifact of a running-best-vs-per-eval measurement bug.
 
-## Manipulation-side compositional-generalization anomaly, diagnosed
-
-Table 4 in the paper shows the manipulation domain's held-out (OOD) twist MSE *lower* than
-in-distribution (ID) -- backwards from the morphology domain's result and from what
-generalization usually looks like. `reviewer_q3_ood_diagnostic.py` runs the same experiment
-across 5 seeds with a per-derivation-length breakdown to check the obvious innocent
-explanation (OOD derivations happen to be shorter) before concluding anything else.
-
-**That simple length story is ruled out, but not in the direction you'd expect.** ID derivations
-are lengths 3/4/5, OOD are lengths 4/8 -- they barely overlap in length at all. At the one length
-they share (4), ID error (0.1705) is **14x higher** than OOD error (0.0118), the opposite of "OOD
-is shorter so it's easier."
-
-**Tracing length 4 specifically explains everything.** Of the 3 training (ID) templates, exactly
-one has length 4: `APPROACH, GRASP, LIFT, ROTATE_TOOL`. Every held-out (OOD) template of length 4
-is `APPROACH, GRASP, LIFT, PLACE` -- no `ROTATE_TOOL` at all. Splitting every evaluated derivation
-by whether it contains a `ROTATE_TOOL` step (not by length) shows why: derivations with
-`ROTATE_TOOL` have twist MSE 0.1806 (n=27) vs. 0.0010 (n=73) without -- a 180x gap.
-`ROTATE_TOOL` is the only transformation whose twist depends on a per-scene, randomly sampled
-tool axis (`experiments/scenes.py`'s `random_scene`) rather than a task-geometry-determined
-translation target, making it intrinsically harder to fit regardless of where it falls in a
-derivation.
-
-**So the anomaly is a template-composition confound, not a length confound and not a genuine
-reversed generalization gap:** the one hard operation happens to appear only on the training
-side, inflating the ID average with a task type OOD never has to handle. It says nothing about
-compositional generalization behaving backwards, and doesn't bear on the morphology domain's
-result (a structurally different held-out split -- leg/segment count, not primitive-rule
-identity). A design fix for any future version of this diagnostic: include a
-`ROTATE_TOOL`-bearing template in the held-out set too, so task difficulty is balanced across
-splits. Not implemented here, since doing so changes the experiment being diagnosed rather than
-diagnoses the one already run.
-
 ## Key results (as reported in the paper)
 
 - Homomorphism defect: exactly 0 on inheritance-inactive pairs; ≈0.037 when active (0° rotation, 3.75 ± 2.08 cm). Chains k=2–6 stay ≤ 0.081.
