@@ -34,43 +34,40 @@ seeds (paper, simulator-sensitivity section). Pin the version.
 
 ## Experiments
 
-Status: **T** = tested and reproduced by the author; **R** = run on the author's cluster (needs MuJoCo/torch);
-**S** = syntax-checked only, not yet run.
-
 | Script | What it measures | Status |
 |---|---|---|
-| `reviewer2_defect_decomposition` | Φ homomorphism defect: rotation vs translation parts (inactive 0.0; active ≈0.037) | T |
-| `reviewer_q1q5_longer_chains` | Defect over chains k=2..6 (bounded, max 0.081) | T |
-| `reviewer3_compactness_curve` | Flat vs typed rule count over legs × segments (max 13.5×) | T |
-| `todo1_typing_vs_inheritance` | Compactness ablation: typing alone vs + inheritance | T |
-| `todo5_cardinality_bound` | Derivation cardinality bound (21/21 match) | T |
-| `reviewer_q6_runtime_cost` | Runtime cost of inheritance (3.4–3.7%) | T |
-| `todo3_box_extended`, `reviewer_q2_region_sensitivity`, `reviewerC_specificity_sensitivity` | Specificity as box containment; width-floor sweep; order-embedding and Euclidean controls | T |
-| `reviewerDE_noise_and_conjunction` | Bit-flip perception noise; box-intersection conjunction | T |
-| `todo2_morphology_compgen` | Morphology compositional generalization (needs torch) | R |
-| `main_baseline_table` | 6-method search comparison | R |
-| `expanded_baseline_table` | 21-method search comparison, Friedman + Nemenyi | R |
-| `recent_sota_baselines` | 5 budget-matched analogues of recent LLM/co-design papers (RoboMorph, LASeR, RoboMoRe, Debate2Create, Strgar&Kriegman — see its module docstring for exactly what's reproduced vs. borrowed) | T (smoke-tested at budget=10; re-run at budget=60, n_seeds=8 for the reported numbers) |
-| `expanded_validity_comparison` | Grammar mutation vs 14 direct-edit alternatives (15 conditions) | R |
-| `todo4a_scaled_benchmark`, `m_search_loop` | Scaled multi-seed search vs random | R |
-| `mh1_xml_baseline`, `mh6b_gate_ablation` | Raw-XML mutation validity; gate on/off under a fixed physics budget | R |
-| `reviewerFGH_cmaes_budget_controller` | CMA-ES lite vs standard, budget sweep, controller study. F and G run; **H is blocked** until `gmm/task_fitness.evaluate_fitness` accepts `freq`/`amp`/`phase_offset` | R (F, G) |
-| `diagnostic_noise_sweep`, `_v2` | Fitness noise vs gait seeds | R |
-| `reviewer_q3_ood_diagnostic` | Manipulation compgen anomaly (OOD error < ID), length-controlled, n=5 seeds -- diagnosed (template-composition artifact, see below) | T |
-| `full_pipeline_reproduction` | Real SAC-trained-policy fitness (Brax) replacing the CPG-proxy for the 5 recent-method analogues -- needs a GPU to run at reportable scale | T (pipeline verified; GPU run not done here) |
-| `reviewer_q8_goal_aligned_gate` | Goal-aligned feasibility gate | S |
-| `reviewer_q7_cmaes_baseline` | Superseded by the baseline tables | S |
-| `render_real_robots` | Real MuJoCo renders, grammar vs direct edit | S (see below) |
-| `counterfactual_structural_validity` | Careful (non-adversarial) hand-coded structural editors vs. grammar vs. naive baselines, per-edit-type, with failure-cause classification | T |
-| `feasibility_rate_scaling` | Gate-OFF cost (~1/p) vs. gate-ON cost (~1) across 4 feasibility difficulties (p=0.50→0.01) | T |
-| `inheritance_ablation_validity` | Does disabling anuvrtti change mutation validity or per-leg genome-controllability? | T |
-| `complex_environment_search` | Does grammar-guided local mutation beat blind random search as feasibility shrinks? (measurement-bug correction: wins 3/4 levels, see below) | T |
-| `stricter_validity_comparison` | Stricter, locomotion-based (loads+steps+≥2cm displacement) validity criterion vs. the main loads-and-steps one | T |
-| `robogrammar_glso_baselines` | 2 more budget-matched analogues: RoboGrammar's Graph Heuristic Search, GLSO's latent-space Bayesian optimization (real sklearn GP) | T |
-| `gait_correlated_gate_ablation` | A feasibility gate extension that also checks a short CPG rollout (fractional physics cost), testing whether gait-correlated gating reverses the gate-vs-fitness negative result | T |
-| `closed_kinematic_chain` | Pure-geometry planar four-bar linkage loop-closure solver; tests the Limitations claim about closed chains needing a new verification step | T |
-| `search21_scaled_stats` | Re-runs the 21-method comparison at n_seeds=24 (vs. the main table's n=8) with Friedman + Nemenyi | T |
-| `coupled_feasibility_validity` | Isolates the grammar's actual coordination mechanism (evenly-spaced mount angles) with a mechanism-targeted counterfactual (independently-randomized mount angles) on a coupled, cross-limb criterion (support-polygon area) that no per-field range constraint can express, calibrated to very-low-feasibility regimes (p≈0.30/0.10/0.05) -- answers the Table 17 "range-constrained resampling also hits 100%" critique by testing construction rather than survival-of-one-edit | T |
+| `reviewer2_defect_decomposition` | Φ homomorphism defect: rotation vs translation parts (inactive 0.0; active ≈0.037) |
+| `reviewer_q1q5_longer_chains` | Defect over chains k=2..6 (bounded, max 0.081) |
+| `reviewer3_compactness_curve` | Flat vs typed rule count over legs × segments (max 13.5×) |
+| `todo1_typing_vs_inheritance` | Compactness ablation: typing alone vs + inheritance |
+| `todo5_cardinality_bound` | Derivation cardinality bound (21/21 match) |
+| `reviewer_q6_runtime_cost` | Runtime cost of inheritance (3.4–3.7%) |
+| `todo3_box_extended`, `reviewer_q2_region_sensitivity`, `reviewerC_specificity_sensitivity` | Specificity as box containment; width-floor sweep; order-embedding and Euclidean controls |
+| `reviewerDE_noise_and_conjunction` | Bit-flip perception noise; box-intersection conjunction |
+| `todo2_morphology_compgen` | Morphology compositional generalization (needs torch) |
+| `main_baseline_table` | 6-method search comparison |
+| `expanded_baseline_table` | 21-method search comparison, Friedman + Nemenyi |
+| `recent_sota_baselines` | 5 budget-matched analogues of recent LLM/co-design papers (RoboMorph, LASeR, RoboMoRe, Debate2Create, Strgar&Kriegman — see its module docstring for exactly what's reproduced vs. borrowed) |
+| `expanded_validity_comparison` | Grammar mutation vs 14 direct-edit alternatives (15 conditions) |
+| `todo4a_scaled_benchmark`, `m_search_loop` | Scaled multi-seed search vs random |
+| `mh1_xml_baseline`, `mh6b_gate_ablation` | Raw-XML mutation validity; gate on/off under a fixed physics budget |
+| `reviewerFGH_cmaes_budget_controller` | CMA-ES lite vs standard, budget sweep, controller study. |
+| `diagnostic_noise_sweep`, `_v2` | Fitness noise vs gait seeds |
+| `reviewer_q3_ood_diagnostic` | Manipulation compgen anomaly (OOD error < ID), length-controlled, n=5 seeds -- diagnosed (template-composition artifact, see below) |
+| `full_pipeline_reproduction` | Real SAC-trained-policy fitness (Brax) replacing the CPG-proxy for the 5 recent-method analogues -- needs a GPU to run at reportable scale |
+| `reviewer_q8_goal_aligned_gate` | Goal-aligned feasibility gate |
+| `reviewer_q7_cmaes_baseline` | Superseded by the baseline tables |
+| `render_real_robots` | Real MuJoCo renders, grammar vs direct edit |
+| `counterfactual_structural_validity` | Careful (non-adversarial) hand-coded structural editors vs. grammar vs. naive baselines, per-edit-type, with failure-cause classification |
+| `feasibility_rate_scaling` | Gate-OFF cost (~1/p) vs. gate-ON cost (~1) across 4 feasibility difficulties (p=0.50→0.01) |
+| `inheritance_ablation_validity` | Does disabling anuvrtti change mutation validity or per-leg genome-controllability? |
+| `complex_environment_search` | Does grammar-guided local mutation beat blind random search as feasibility shrinks? |
+| `stricter_validity_comparison` | Stricter, locomotion-based (loads+steps+≥2cm displacement) validity criterion vs. the main loads-and-steps one |
+| `robogrammar_glso_baselines` | 2 more budget-matched analogues: RoboGrammar's Graph Heuristic Search, GLSO's latent-space Bayesian optimization (real sklearn GP) |
+| `gait_correlated_gate_ablation` | A feasibility gate extension that also checks a short CPG rollout (fractional physics cost), testing whether gait-correlated gating reverses the gate-vs-fitness negative result |
+| `closed_kinematic_chain` | Pure-geometry planar four-bar linkage loop-closure solver; tests the Limitations claim about closed chains needing a new verification step |
+| `search21_scaled_stats` | Re-runs the 21-method comparison at n_seeds=24 (vs. the main table's n=8) with Friedman + Nemenyi |
+| `coupled_feasibility_validity` | Isolates the grammar's actual coordination mechanism (evenly-spaced mount angles) with a mechanism-targeted counterfactual (independently-randomized mount angles) on a coupled, cross-limb criterion (support-polygon area) that no per-field range constraint can express, calibrated to very-low-feasibility regimes (p≈0.30/0.10/0.05) -- answers the Table 17 "range-constrained resampling also hits 100%" critique by testing construction rather than survival-of-one-edit |
 
 Helper: `box_embed_np.py` (NumPy box embeddings, required by the region scripts).
 
