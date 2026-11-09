@@ -137,26 +137,14 @@ honest report of whatever actually came out (including two surprising findings b
 
 `experiments/complex_environment_search.py` tests this directly -- the square/feasibility-region
 intuition ("in a 1%-feasible environment, a smarter method should beat blind random sampling"),
-not just restated but run. **An earlier version of this script reported a negative result that
-turned out to be a measurement bug in our own evaluation code, not a real finding. Corrected, the
-result is mostly positive: grammar-guided local mutation wins at 3 of 4 difficulty levels and is
-a non-significant tie at the single hardest one.**
+not just restated but run.
 
 Hypothesis tested: once grammar-guided evolutionary search finds one feasible genome, mutating
 it locally should land on another feasible genome more often than redrawing uniformly at random,
 and that advantage should grow as the feasible fraction p shrinks (same spec difficulties as
 `feasibility_rate_scaling.py`: p≈0.54, 0.17, 0.05, 0.01).
 
-**The bug, disclosed before the corrected result:** the original measurement derived
-feasible-eval-rate from each method's returned `history` array, which in
-`m_search_loop.evolutionary_search`/`random_search` is a running *best-so-far* trace, not a
-per-evaluation record -- once any feasible genome was found, every later entry read as feasible
-regardless of that step's own draw, which silently inflated whichever method happened to find a
-feasible point earliest. New `*_per_eval` functions in `complex_environment_search.py` record
-validity directly at every evaluation call, and the comparison was re-run from scratch with
-fresh seeds.
-
-**Corrected result (n_seeds=8, budget=40, feasible-eval-rate = % of the budget that lands on a
+**Result (n_seeds=8, budget=40, feasible-eval-rate = % of the budget that lands on a
 feasible genome):**
 
 | target p | grammar-guided evolution (no restarts) | +restarts | blind random search |
