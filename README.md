@@ -34,7 +34,7 @@ seeds (paper, simulator-sensitivity section). Pin the version.
 
 ## Experiments
 
-| Script | What it measures | Status |
+| Script | What it measures |
 |---|---|---|
 | `reviewer2_defect_decomposition` | Φ homomorphism defect: rotation vs translation parts (inactive 0.0; active ≈0.037) |
 | `reviewer_q1q5_longer_chains` | Defect over chains k=2..6 (bounded, max 0.081) |
